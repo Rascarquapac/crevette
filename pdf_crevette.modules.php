@@ -41,13 +41,63 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
  * @class pdf_crevette
  * Another class to manage PDF invoice template for Dolibarr ERP
  * This class is a refactoring of the existing pdf_crabe class provided 
- * with Dolibarr 6.0.5. It focuses on
+ * with Dolibarr 6.0.5. 
+ * <h3>Compared to pdf_crabe class, pdf_crevette class focuses on</h3>
  * <ul>
  * <li>Readability by grouping code in functions</li>
  * <li>Taking out hidden (usefull but undocumented)</li>
  * <li>Adding HTML2pdf parameters for line description and notes</li>
  * <li>Changing the way X position of columns is established</li>
  * <li>Adding some pdf boxes (CGV, special notes)</li>
+ * </ul>
+ * <h3>PDF parameters</h3>
+ * <ul>
+ * <li>MAIN_PDF_MARGIN_LEFT, MAIN_PDF_MARGIN_RIGHT, MAIN_PDF_MARGIN_TOP, MAIN_PDF_MARGIN_BOTTOM: page margins</li>
+ * <li>MAIN_DOCUMENTS_WITH_PICTURE_WIDTH : width of the picture associated to the line</li>
+ * <li><MAIN_USE_FPDF/li>
+ * <li>MAIN_USE_FPDF</li>
+ * <li>PDF_DIFFSIZE_TITLE</li>
+ * <li>MAIN_PDF_USE_ISO_LOCATION</li>
+ * <li>MAIN_PDF_TITLE_BACKGROUND_COLOR</li>
+ * <li>MAIN_ADD_PDF_BACKGROUND</li>
+ * <li>MAIN_PDF_HIDE_CHQ_ADDRESS</li>
+ * <li>FACTURE_DRAFT_WATERMARK</li>
+ * </ul>
+ * <h3>Column format parameters</h3>
+ * <ul>
+ * <li>MAIN_PDF_FREETEXT_HEIGHT</li>
+ * <li>MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT</li>
+ * <li>MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT_COLUMN</li>
+ * <li>MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT_IFNULL</li>
+ * <li>PRODUCT_USE_UNITS</li>
+ * <li>MAIN_PDF_DONOTREPEAT_HEAD</li>
+ * <li>INVOICE_POSITIVE_CREDIT_NOTE</li>
+ * <li>MAIN_PDF_DASH_BETWEEN_LINES</li>
+ * </ul>
+ *  <h3>Extra column content</h3>
+ * <ul>
+ * <li>MAIN_GENERATE_INVOICES_WITH_PICTURE</li>
+ * <li>MAIN_INVERT_SENDER_RECIPIENT</li>
+ * <li>MAIN_ADD_SALE_REP_SIGNATURE_IN_NOTE</li>
+ * <li>INVOICE_POSITIVE_CREDIT_NOTE</li>
+ * <li>MAIN_GENERATE_INVOICES_WITH_PICTURE</li>
+ * </ul>
+ * <h3>Extra column content</h3>
+ * <ul>
+ * <li>MAIN_INVERT_SENDER_RECIPIENT</li>
+ * <li>MAIN_ADD_SALE_REP_SIGNATURE_IN_NOTE</li>
+ * <li>INVOICE_POSITIVE_CREDIT_NOTE</li>
+ * <li>INVOICE_POINTOFTAX_DATE</li>
+ * <li>DOC_SHOW_FIRST_SALES_REPMAIN_PDF_USE_ISO_LOCATION</li>
+ * <li>MAIN_USE_COMPANY_NAME_OF_CONTACT</li>
+ * <li>MAIN_INVERT_SENDER_RECIPIENT</li>
+ * <li>MAIN_GENERATE_DOCUMENTS_SHOW_FOOT_DETAILS</li>
+ * </ul>
+ * <h3>Misc</h3>
+ * <ul>
+ * <li>FACTURE_CHQ_NUMBER</li>
+ * <li>FACTURE_RIB_NUMBER</li>
+ * <li>MAIN_UMASK</li>
  * </ul>
  */
 
