@@ -38,8 +38,19 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
 
 
 /**
- *	Class to manage PDF invoice template Crabe
+ * @class pdf_crevette
+ * Another class to manage PDF invoice template for Dolibarr ERP
+ * This class is a refactoring of the existing pdf_crabe class provided 
+ * with Dolibarr 6.0.5. It focuses on
+ * <ul>
+ * <li>Readability by grouping code in functions</li>
+ * <li>Taking out hidden (usefull but undocumented)</li>
+ * <li>Adding HTML2pdf parameters for line description and notes</li>
+ * <li>Changing the way X position of columns is established</li>
+ * <li>Adding some pdf boxes (CGV, special notes)</li>
+ * </ul>
  */
+
 class pdf_crevette extends ModelePDFFactures
 {
     var $db;
@@ -115,40 +126,6 @@ class pdf_crevette extends ModelePDFFactures
 		if (empty($this->emetteur->country_code)) $this->emetteur->country_code=substr($langs->defaultlang,-2);    // By default, if was not defined
 
 		// Define position of columns
-		//Begin TN proposal
-		/* Deleting previous posx intitialisation
-		$this->posxdesc=$this->marge_gauche+1;
-		if($conf->global->PRODUCT_USE_UNITS)
-		{
-			$this->posxtva=99;
-			$this->posxup=114;
-			$this->posxqty=130;
-			$this->posxunit=147;
-		}
-		else
-		{
-			$this->posxtva=110;
-			$this->posxup=126;
-			$this->posxqty=145;
-		}
-		$this->posxdiscount=162;
-		$this->posxprogress=126; // Only displayed for situation invoices
-		$this->postotalht=174;
-		if (! empty($conf->global->MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT) || ! empty($conf->global->MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT_COLUMN)) $this->posxtva=$this->posxup;
-		$this->posxpicture=$this->posxtva - (empty($conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH)?20:$conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH);	// width of images
-		if ($this->page_largeur < 210) // To work with US executive format
-		{
-		    $this->posxpicture-=20;
-		    $this->posxtva-=20;
-		    $this->posxup-=20;
-		    $this->posxqty-=20;
-		    $this->posxunit-=20;
-		    $this->posxdiscount-=20;
-		    $this->posxprogress-=20;
-		    $this->postotalht-=20;
-		}
-        */
-		//End TN proposal
 
 		$this->tva=array();
 		$this->localtax1=array();
@@ -157,7 +134,7 @@ class pdf_crevette extends ModelePDFFactures
 		$this->atleastonediscount=0;
 		$this->situationinvoice=False;
 	}
-	//Begin TN proposal
+
 	/**
 	 *  Function to build X positions of columns
 	 *
@@ -195,8 +172,7 @@ class pdf_crevette extends ModelePDFFactures
 	    $this->posxdesc=$this->marge_gauche+1;
 	    
 	}
-	//End TN proposal
-	//Begin TN proposal
+
 	/**
 	 *  Function to build the path array of pictures when they exist in lines
 	 *  @param        Object
@@ -228,7 +204,6 @@ class pdf_crevette extends ModelePDFFactures
 	    }
 	    return ($realpatharray);
 	}
-	//End TN proposal
 	
 
 	/**
@@ -259,16 +234,11 @@ class pdf_crevette extends ModelePDFFactures
 		$nblignes = count($object->lines);
 
 		// Loop on each lines to detect if there is at least one image to show
-		//Begin TN proposal
 		if (empty($conf->global->MAIN_GENERATE_INVOICES_WITH_PICTURE))
 		    $realpatharray = array();
 		else 
 		    $realpatharray=get_realpatharray($object);;
-		//End TN proposal
 		
-		//Begin TN proposal
-		//if (count($realpatharray) == 0) $this->posxpicture=$this->posxtva;
-		//End TN proposal
 		
 		if ($conf->facture->dir_output)
 		{
@@ -372,32 +342,6 @@ class pdf_crevette extends ModelePDFFactures
 				}
 				
 				//Begin TN proposal
-				/* Dolibarr 6.0.5 commented
-				if (empty($this->atleastonediscount) && empty($conf->global->PRODUCT_USE_UNITS))    // retreive space not used by discount
-				{
-					$this->posxpicture+=($this->postotalht - $this->posxdiscount);
-					$this->posxtva+=($this->postotalht - $this->posxdiscount);
-					$this->posxup+=($this->postotalht - $this->posxdiscount);
-					$this->posxqty+=($this->postotalht - $this->posxdiscount);
-					$this->posxdiscount+=($this->postotalht - $this->posxdiscount);
-					//$this->postotalht;
-				}
-
-				$progress_width = 0;
-				if ($object->situation_cycle_ref)
-				{
-					$this->situationinvoice = True;
-					$progress_width = 18;
-					$this->posxtva -= $progress_width;
-					$this->posxup -= $progress_width;
-					$this->posxqty -= $progress_width;
-					if(empty($conf->global->PRODUCT_USE_UNITS)) {
-						$this->posxprogress += $progress_width;
-					}
-					//$this->posxdiscount -= $progress_width;
-					//$this->posxprogress -= $progress_width;
-		        }
-				*/
 				$no_tvacol   =    ! empty($conf->global->MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT)
 				|| ! empty($conf->global->MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT_COLUMN);
 				$no_unit     = empty($conf->global->PRODUCT_USE_UNITS);
