@@ -115,6 +115,8 @@ class pdf_crevette extends ModelePDFFactures
 		if (empty($this->emetteur->country_code)) $this->emetteur->country_code=substr($langs->defaultlang,-2);    // By default, if was not defined
 
 		// Define position of columns
+		//Begin TN proposal
+		/* Deleting previous posx intitialisation
 		$this->posxdesc=$this->marge_gauche+1;
 		if($conf->global->PRODUCT_USE_UNITS)
 		{
@@ -145,6 +147,8 @@ class pdf_crevette extends ModelePDFFactures
 		    $this->posxprogress-=20;
 		    $this->postotalht-=20;
 		}
+        */
+		//End TN proposal
 
 		$this->tva=array();
 		$this->localtax1=array();
@@ -153,7 +157,79 @@ class pdf_crevette extends ModelePDFFactures
 		$this->atleastonediscount=0;
 		$this->situationinvoice=False;
 	}
-
+	//Begin TN proposal
+	/**
+	 *  Function to build X positions of columns
+	 *
+	 *  @param       Boolean		$no_tvacol		TRUE when not TVA column wished
+	 *  @param       Boolean		$no_units		TRUE when not product unit wished
+	 *  @param       Boolean		$no_discount		TRUE when not discount detected
+	 *  TN proposal
+	 */
+	function update_xpositions($no_tvacol, $no_units, $no_discount, $no_picture,$no_situation_cycle_ref)
+	{
+	    // output columns width, for position of colums,
+	    $this->width_descrip  = 108; //82 remaining
+	    $this->width_tva      = 10;  //72 remaining
+	    $this->width_up       = 16;  //56 remaining
+	    $this->width_qty      = 14;  //42 remaining
+	    $this->width_unit     = 10;  //32 remaining
+	    $this->width_discount = 12;  //20 remain
+	    $this->width_xprogress= 18;  //
+	    $this->width_totalht  = 16;  //0 remaining
+	    $this->width_picture  = (empty($conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH)?20:$conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH);
+	    // X positions from right ot left
+	    if ($no_tvacol)   $this->width_tva      = 0;
+	    if ($no_units)    $this->width_unit     = 0;
+	    if ($no_discount) $this->width_discount = 0;
+	    if ($no_picture)  $this->width_picture  = 0;
+	    if ($no_situation_cycle_ref) $this->width_xprogress= 0;
+	    $this->postotalht   = $this->page_largeur - $this->marge_droite - $this->width_totalht;
+	    $this->posxprogress = $this->postotalht   - $this->width_xprogress;
+	    $this->posxdiscount = $this->posxprogress - $this->width_discount;
+	    $this->posxunit     = $this->posxdiscount - $this->width_unit;
+	    $this->posxqty      = $this->posxunit     - $this->width_qty;
+	    $this->posxup       = $this->posxqty      - $this->width_up;
+	    $this->posxtva      = $this->posxup       - $this->width_tva;
+	    $this->posxpicture  = $this->posxtva      - $this->width_picture;
+	    $this->posxdesc=$this->marge_gauche+1;
+	    
+	}
+	//End TN proposal
+	//Begin TN proposal
+	/**
+	 *  Function to build the path array of pictures when they exist in lines
+	 *  @param        Object
+	 *  @return       Array		$realpatharray     NULL or list of images paths
+	 *  TN proposal
+	 */
+	function get_realpatharray($object)
+	{
+	    $realpatharray=array();
+	    for ($i = 0 ; $i < $nblignes ; $i++)
+	    {
+	        if (empty($object->lines[$i]->fk_product)) continue;
+	        
+	        $objphoto = new Product($this->db);
+	        $objphoto->fetch($object->lines[$i]->fk_product);
+	        
+	        $pdir = get_exdir($object->lines[$i]->fk_product,2,0,0,$objphoto,'product') . $object->lines[$i]->fk_product ."/photos/";
+	        $dir = $conf->product->dir_output.'/'.$pdir;
+	        
+	        $realpath='';
+	        foreach ($objphoto->liste_photos($dir,1) as $key => $obj)
+	        {
+	            $filename=$obj['photo'];
+	            //if ($obj['photo_vignette']) $filename='thumbs/'.$obj['photo_vignette'];
+	            $realpath = $dir.$filename;
+	            break;
+	        }       
+	        if ($realpath) $realpatharray[$i]=$realpath;
+	    }
+	    return ($realpatharray);
+	}
+	//End TN proposal
+	
 
 	/**
      *  Function to build pdf onto disk
@@ -183,33 +259,17 @@ class pdf_crevette extends ModelePDFFactures
 		$nblignes = count($object->lines);
 
 		// Loop on each lines to detect if there is at least one image to show
-		$realpatharray=array();
-		if (! empty($conf->global->MAIN_GENERATE_INVOICES_WITH_PICTURE))
-		{
-			for ($i = 0 ; $i < $nblignes ; $i++)
-			{
-				if (empty($object->lines[$i]->fk_product)) continue;
-
-				$objphoto = new Product($this->db);
-				$objphoto->fetch($object->lines[$i]->fk_product);
-
-				$pdir = get_exdir($object->lines[$i]->fk_product,2,0,0,$objphoto,'product') . $object->lines[$i]->fk_product ."/photos/";
-				$dir = $conf->product->dir_output.'/'.$pdir;
-
-				$realpath='';
-				foreach ($objphoto->liste_photos($dir,1) as $key => $obj)
-				{
-					$filename=$obj['photo'];
-					//if ($obj['photo_vignette']) $filename='thumbs/'.$obj['photo_vignette'];
-					$realpath = $dir.$filename;
-					break;
-				}
-
-				if ($realpath) $realpatharray[$i]=$realpath;
-			}
-		}
-		if (count($realpatharray) == 0) $this->posxpicture=$this->posxtva;
-
+		//Begin TN proposal
+		if (empty($conf->global->MAIN_GENERATE_INVOICES_WITH_PICTURE))
+		    $realpatharray = array();
+		else 
+		    $realpatharray=get_realpatharray($object);;
+		//End TN proposal
+		
+		//Begin TN proposal
+		//if (count($realpatharray) == 0) $this->posxpicture=$this->posxtva;
+		//End TN proposal
+		
 		if ($conf->facture->dir_output)
 		{
 			$object->fetch_thirdparty();
@@ -282,7 +342,17 @@ class pdf_crevette extends ModelePDFFactures
 				$pdf->Open();
 				$pagenb=0;
 				$pdf->SetDrawColor(128,128,128);
-
+				//Begin TN proposal for lists and break spacing
+				$tagvs = array('p'  => array(0 => array('h' => 0.0001, 'n' => 1), 1 => array('h' => 0.0001, 'n' => 1)),
+				    'br' => array(0 => array('h' => 0.0001, 'n' => 1), 1 => array('h' => 0.0001, 'n' => 1)),
+				    'ul' => array(0 => array('h' => 0.0001, 'n' => 1), 1 => array('h' => 0.0001, 'n' => 1)),
+				    'ol' => array(0 => array('h' => 0.0001, 'n' => 1), 1 => array('h' => 0.0001, 'n' => 1))
+				);
+				$pdf->setHtmlVSpace($tagvs);
+				//List indent size
+				$pdf->setListIndentWidth(6);
+				//End TN proposal
+				
 				$pdf->SetTitle($outputlangs->convToOutputCharset($object->ref));
 				$pdf->SetSubject($outputlangs->transnoentities("Invoice"));
 				$pdf->SetCreator("Dolibarr ".DOL_VERSION);
@@ -300,6 +370,9 @@ class pdf_crevette extends ModelePDFFactures
 						$this->atleastonediscount++;
 					}
 				}
+				
+				//Begin TN proposal
+				/* Dolibarr 6.0.5 commented
 				if (empty($this->atleastonediscount) && empty($conf->global->PRODUCT_USE_UNITS))    // retreive space not used by discount
 				{
 					$this->posxpicture+=($this->postotalht - $this->posxdiscount);
@@ -311,7 +384,6 @@ class pdf_crevette extends ModelePDFFactures
 				}
 
 				$progress_width = 0;
-				// Situation invoice handling
 				if ($object->situation_cycle_ref)
 				{
 					$this->situationinvoice = True;
@@ -322,9 +394,22 @@ class pdf_crevette extends ModelePDFFactures
 					if(empty($conf->global->PRODUCT_USE_UNITS)) {
 						$this->posxprogress += $progress_width;
 					}
-					/*$this->posxdiscount -= $progress_width;
-					$this->posxprogress -= $progress_width;*/
-				}
+					//$this->posxdiscount -= $progress_width;
+					//$this->posxprogress -= $progress_width;
+		        }
+				*/
+				$no_tvacol   =    ! empty($conf->global->MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT)
+				|| ! empty($conf->global->MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT_COLUMN);
+				$no_unit     = empty($conf->global->PRODUCT_USE_UNITS);
+				$no_discount = empty ($this->atleastonediscount);
+				$no_picture  = empty ($realpatharray);
+				$no_situation_cycle_ref = empty($object->situation_cycle_ref);
+				
+				$this->update_xpositions($no_tvacol, $no_units, $no_discount,$no_picture,$no_situation_cycle_ref);
+				//End TN proposal
+				// Situation invoice handling
+				
+				
 
 				// New page
 				$pdf->AddPage();
@@ -1460,8 +1545,10 @@ class pdf_crevette extends ModelePDFFactures
 			$pdf->line($this->posxunit - 1, $tab_top, $this->posxunit - 1, $tab_top + $tab_height);
 			if (empty($hidetop)) {
 				$pdf->SetXY($this->posxunit - 1, $tab_top + 1);
-				$pdf->MultiCell($this->posxdiscount - $this->posxunit - 1, 2, $outputlangs->transnoentities("Unit"), '',
-					'C');
+				//Begin TN Proposal
+				//$pdf->MultiCell($this->posxdiscount - $this->posxunit - 1, 2, $outputlangs->transnoentities("Unit"), '','C');
+				$pdf->MultiCell($this->posxdiscount - $this->posxunit , 2, $outputlangs->transnoentities("Unit"), '','C');
+				//End TN proposal
 			}
 		}
 
@@ -1481,7 +1568,10 @@ class pdf_crevette extends ModelePDFFactures
 			if (empty($hidetop))
 			{
 				$pdf->SetXY($this->postotalht-19, $tab_top+1);
-				$pdf->MultiCell(30,2, $outputlangs->transnoentities("Situation"),'','C');
+				//Begin TN proposal
+				//$pdf->MultiCell(30,2, $outputlangs->transnoentities("Situation"),'','C');
+				$pdf->MultiCell($this->width_totalht,2, $outputlangs->transnoentities("Situation"),'','C');
+				//End TN proposal
 			}
 		}
 
@@ -1492,7 +1582,10 @@ class pdf_crevette extends ModelePDFFactures
 		if (empty($hidetop))
 		{
 			$pdf->SetXY($this->postotalht-1, $tab_top+1);
-			$pdf->MultiCell(30,2, $outputlangs->transnoentities("TotalHT"),'','C');
+			//Begin TN proposal
+		    //$pdf->MultiCell(30,2, $outputlangs->transnoentities("TotalHT"),'','C');
+			$pdf->MultiCell($this->width_totalht,2, $outputlangs->transnoentities("TotalHT"),'','C');
+			//End TN proposal
 		}
 	}
 
