@@ -25,7 +25,7 @@
  */
 
 /**
- *	\file       htdocs/core/modules/facture/doc/pdf_crabe.modules.php
+ *	\file       htdocs/core/modules/facture/doc/pdf_crevette.modules.php
  *	\ingroup    facture
  *	\brief      File of class to generate customers invoices from crabe model
  */
@@ -40,7 +40,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
 /**
  *	Class to manage PDF invoice template Crabe
  */
-class pdf_crabe extends ModelePDFFactures
+class pdf_crevette extends ModelePDFFactures
 {
     var $db;
     var $name;
@@ -84,7 +84,7 @@ class pdf_crabe extends ModelePDFFactures
 		$langs->load("bills");
 
 		$this->db = $db;
-		$this->name = "crabe";
+		$this->name = "crevette";
 		$this->description = $langs->trans('PDFCrabeDescription');
 
 		$this->type = 'pdf';
